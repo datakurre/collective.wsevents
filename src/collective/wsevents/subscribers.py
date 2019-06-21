@@ -42,10 +42,11 @@ class NotificationGuard(BrowserView):
         pc = getToolByName(self.context, "portal_catalog")
         self.request.response.setHeader("Content-Type", "application/json")
         # noinspection PyProtectedMember
+        print(pc._listAllowedRolesAndUsers(user))
         return json.dumps(
             {
                 "allowedRolesAndUsers": {
-                    "tokens": pc._listAllowedRolesAndUsers(user),
+                    "tokens": list(pc._listAllowedRolesAndUsers(user)),
                     "expires": time.time() + 60,
                 }
             }
@@ -128,6 +129,63 @@ def publish_object_modified(ob, event, guards=None):
         message = {
             "guards": guards or get_allowed_roles_and_users_guard(ob),
             "payload": {"modified": [{"@id": ob.absolute_url()}]},
+        }
+    dm = CallbackDataManager(publish_message, encode_message(message), topic)
+    get_transaction().join(dm)
+
+
+def publish_object_commented(ob, event):
+    topic = "/".join(ob.getPhysicalPath())
+    parent = aq_parent(ob)
+    comment = event.comment
+    author = comment.author_username
+
+    if author:
+        portal_membership = getToolByName(ob, "portal_membership")
+        member = portal_membership.getMemberById(author)
+        if member is not None:
+            author = member.getProperty("fullname") or author
+    else:
+        author = comment.author_name
+
+    guards_object = get_allowed_roles_and_users_guard(ob)
+    guards_comment = get_allowed_roles_and_users_guard(comment)
+    if (
+        "Anonymous" in guards_comment["allowedRolesAndUsers"]["tokens"]
+        and "Anonymous" not in guards_object["allowedRolesAndUsers"]["tokens"]
+    ):
+        guards = guards_object
+    else:
+        guards = guards_comment
+
+    if parent is not None:
+        message = {
+            "guards": guards,
+            "payload": {
+                "commented": [
+                    {
+                        "@id": ob.absolute_url(),
+                        "parent": {"@id": parent.absolute_url()},
+                        "title": ob.title,
+                        "text": comment.text,
+                        "author": author,
+                    }
+                ]
+            },
+        }
+    else:
+        message = {
+            "guards": guards,
+            "payload": {
+                "commented": [
+                    {
+                        "@id": ob.absolute_url(),
+                        "title": ob.title,
+                        "text": comment.text,
+                        "author": author,
+                    }
+                ]
+            },
         }
     dm = CallbackDataManager(publish_message, encode_message(message), topic)
     get_transaction().join(dm)

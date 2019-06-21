@@ -3,9 +3,16 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     xmlns:i18n="http://namespaces.zope.org/i18n"
     xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="collective.wsevents">
 
   <i18n:registerTranslations directory="locales" />
+
+  <plone:static
+    directory="static"
+    type="plone"
+    name="wsevents"
+  />
 
   <browser:page
     name="wsevents-guard"
@@ -17,13 +24,13 @@
 
   <subscriber
     for="plone.dexterity.interfaces.IDexterityContent
-           zope.lifecycleevent.IObjectAddedEvent"
+         zope.lifecycleevent.IObjectAddedEvent"
     handler=".subscribers.publish_object_created"
   />
 
   <subscriber
     for="plone.dexterity.interfaces.IDexterityContent
-           zope.lifecycleevent.IObjectModifiedEvent"
+         zope.lifecycleevent.IObjectModifiedEvent"
     handler=".subscribers.publish_object_modified"
   />
 
@@ -47,8 +54,20 @@
 
   <subscriber
     for="plone.dexterity.interfaces.IDexterityContent
-           zope.lifecycleevent.IObjectRemovedEvent"
+         zope.lifecycleevent.IObjectRemovedEvent"
     handler=".subscribers.publish_object_removed"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+         plone.app.discussion.interfaces.ICommentAddedEvent"
+    handler=".subscribers.publish_object_commented"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+         plone.app.discussion.interfaces.ICommentPublishedEvent"
+    handler=".subscribers.publish_object_commented"
   />
 
   <include file="upgrades.zcml"/>

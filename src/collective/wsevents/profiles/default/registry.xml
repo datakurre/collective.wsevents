@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<registry>
+  <records prefix="plone.bundles/wsevents"
+           interface='Products.CMFPlone.interfaces.IBundleRegistry'>
+    <value key="enabled">True</value>
+    <value key="compile">False</value>
+    <value key="jscompilation">++plone++wsevents/toastify.js</value>
+    <value key="csscompilation">++plone++wsevents/toastify.css</value>
+    <value key="last_compilation">2019-06-21 12:00:00</value>
+  </records>
+</registry>
