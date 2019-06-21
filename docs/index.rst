@@ -1,0 +1,5 @@
+=================
+collective.wsevents
+=================
+
+User documentation

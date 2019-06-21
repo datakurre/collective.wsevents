@@ -1,0 +1,81 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="collective.wsevents">
+
+  <i18n:registerTranslations directory="locales" />
+
+  <browser:page
+    name="wsevents-guard"
+    for="*"
+    permission="zope.Public"
+    layer="ZServer.HTTPRequest.WebSocketRequest"
+    class=".subscribers.NotificationGuard"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+           zope.lifecycleevent.IObjectAddedEvent"
+    handler=".subscribers.publish_object_created"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+           zope.lifecycleevent.IObjectModifiedEvent"
+    handler=".subscribers.publish_object_modified"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+         Products.CMFCore.interfaces.IActionWillBeInvokedEvent"
+    handler=".subscribers.publish_before_action"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+         Products.CMFCore.interfaces.IActionSucceededEvent"
+    handler=".subscribers.publish_after_action"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+         zope.lifecycleevent.IObjectMovedEvent"
+    handler=".subscribers.publish_object_moved"
+  />
+
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+           zope.lifecycleevent.IObjectRemovedEvent"
+    handler=".subscribers.publish_object_removed"
+  />
+
+  <include file="upgrades.zcml"/>
+
+  <genericsetup:registerProfile
+    name="default"
+    title="collective.wsevents"
+    directory="profiles/default"
+    description="Installs the collective.wsevents add-on."
+    provides="Products.GenericSetup.interfaces.EXTENSION"
+    post_handler=".setuphandlers.post_install"
+  />
+
+  <genericsetup:registerProfile
+    name="uninstall"
+    title="collective.wsevents (uninstall)"
+    directory="profiles/uninstall"
+    description="Uninstalls the collective.wsevents add-on."
+    provides="Products.GenericSetup.interfaces.EXTENSION"
+    post_handler=".setuphandlers.uninstall"
+  />
+
+  <utility
+    factory=".setuphandlers.HiddenProfiles"
+    name="collective.wsevents-hiddenprofiles"
+  />
+
+  <!-- -*- extra stuff goes here -*- -->
+
+</configure>
