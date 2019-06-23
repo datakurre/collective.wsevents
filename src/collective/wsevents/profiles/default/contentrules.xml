@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<contentrules>
+ <rule name="rule-notify-page-published"
+    title="Show notification when new page has been published"
+    cascading="False" description="" enabled="True"
+    event="Products.CMFCore.interfaces.IActionSucceededEvent"
+    stop-after="False">
+  <conditions>
+   <condition type="plone.conditions.PortalType">
+    <property name="check_types">
+     <element>Document</element>
+    </property>
+   </condition>
+   <condition type="plone.conditions.WorkflowTransition">
+    <property name="wf_transitions">
+     <element>publish</element>
+    </property>
+   </condition>
+  </conditions>
+  <actions>
+   <action type="plone.actions.WebSocket">
+    <property name="payload">{
+       &quot;text&quot;: &quot;\&quot;${title}\&quot; was just published.&quot;,
+       &quot;destination&quot;: &quot;${url}&quot;
+     }</property>
+   </action>
+  </actions>
+ </rule>
+ <rule name="rule-notify-page-needs-review"
+    title="Show notification when submitted page needs review"
+    cascading="False" description="" enabled="True"
+    event="Products.CMFCore.interfaces.IActionSucceededEvent"
+    stop-after="False">
+  <conditions>
+   <condition type="plone.conditions.PortalType">
+    <property name="check_types">
+     <element>Document</element>
+    </property>
+   </condition>
+   <condition type="plone.conditions.WorkflowState">
+    <property name="wf_states">
+     <element>pending</element>
+    </property>
+   </condition>
+  </conditions>
+  <actions>
+   <action type="plone.actions.WebSocket">
+    <property name="payload">{
+       &quot;text&quot;: &quot;\&quot;${title}\&quot; needs review.&quot;,
+       &quot;destination&quot;: &quot;${url}&quot;
+     }</property>
+   </action>
+  </actions>
+ </rule>
+ <rule name="rule-notify-comment-has-been-added"
+    title="Show notification on when new comment has been added"
+    cascading="False" description="" enabled="True"
+    event="plone.app.discussion.interfaces.ICommentAddedEvent"
+    stop-after="False">
+  <conditions/>
+  <actions>
+   <action type="plone.actions.WebSocket">
+    <property name="payload">{
+       &quot;text&quot;: &quot;${comment_user_fullname}: ${comment_text} @ ${title}&quot;,
+       &quot;destination&quot;: &quot;${url}&quot;
+     }</property>
+   </action>
+  </actions>
+ </rule>
+ <assignment name="rule-notify-page-published" bubbles="True" enabled="True" location=""/>
+ <assignment name="rule-notify-page-needs-review" bubbles="True" enabled="True" location=""/>
+ <assignment name="rule-notify-comment-has-been-added" bubbles="True" enabled="True" location=""/>
+</contentrules>
