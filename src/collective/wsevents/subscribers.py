@@ -42,7 +42,6 @@ class NotificationGuard(BrowserView):
         pc = getToolByName(self.context, "portal_catalog")
         self.request.response.setHeader("Content-Type", "application/json")
         # noinspection PyProtectedMember
-        print(pc._listAllowedRolesAndUsers(user))
         return json.dumps(
             {
                 "allowedRolesAndUsers": {
@@ -134,6 +133,56 @@ def publish_object_modified(ob, event, guards=None):
     get_transaction().join(dm)
 
 
+def publish_object_moved(ob, event):
+    topic = "/".join(ob.getPhysicalPath())
+    if event.oldParent is not None and event.newParent is not None:
+        new_id = ob.absolute_url()
+        old_id = new_id.replace(
+            event.newParent.absolute_url() + "/" + event.newName,
+            event.oldParent.absolute_url() + "/" + event.oldName,
+        )
+        parent = aq_parent(ob)
+        parent_new_id = parent.absolute_url()
+        parent_old_id = parent_new_id.replace(
+            event.newParent.absolute_url() + "/" + event.newName,
+            event.oldParent.absolute_url() + "/" + event.oldName,
+        )
+        message = {
+            "guards": get_allowed_roles_and_users_guard(ob.__of__(event.oldParent)),
+            "payload": {"removed": [{"@id": old_id, "parent": {"@id": parent_old_id}}]},
+        }
+        dm = CallbackDataManager(publish_message, encode_message(message), topic)
+        get_transaction().join(dm)
+
+        message = {
+            "guards": get_allowed_roles_and_users_guard(ob),
+            "payload": {"created": [{"@id": new_id, "parent": {"@id": parent_new_id}}]},
+        }
+        dm = CallbackDataManager(publish_message, encode_message(message), topic)
+        get_transaction().join(dm)
+
+
+def publish_object_removed(ob, event):
+    topic = "/".join(ob.getPhysicalPath())
+    parent = aq_parent(ob)
+    if parent is not None:
+        message = {
+            "guards": get_allowed_roles_and_users_guard(ob),
+            "payload": {
+                "removed": [
+                    {"@id": ob.absolute_url(), "parent": {"@id": parent.absolute_url()}}
+                ]
+            },
+        }
+    else:
+        message = {
+            "guards": get_allowed_roles_and_users_guard(ob),
+            "payload": {"removed": [{"@id": ob.absolute_url()}]},
+        }
+    dm = CallbackDataManager(publish_message, encode_message(message), topic)
+    get_transaction().join(dm)
+
+
 def publish_object_commented(ob, event):
     topic = "/".join(ob.getPhysicalPath())
     parent = aq_parent(ob)
@@ -186,56 +235,6 @@ def publish_object_commented(ob, event):
                     }
                 ]
             },
-        }
-    dm = CallbackDataManager(publish_message, encode_message(message), topic)
-    get_transaction().join(dm)
-
-
-def publish_object_moved(ob, event):
-    topic = "/".join(ob.getPhysicalPath())
-    if event.oldParent is not None and event.newParent is not None:
-        new_id = ob.absolute_url()
-        old_id = new_id.replace(
-            event.newParent.absolute_url() + "/" + event.newName,
-            event.oldParent.absolute_url() + "/" + event.oldName,
-        )
-        parent = aq_parent(ob)
-        parent_new_id = parent.absolute_url()
-        parent_old_id = parent_new_id.replace(
-            event.newParent.absolute_url() + "/" + event.newName,
-            event.oldParent.absolute_url() + "/" + event.oldName,
-        )
-        message = {
-            "guards": get_allowed_roles_and_users_guard(ob.__of__(event.oldParent)),
-            "payload": {"removed": [{"@id": old_id, "parent": {"@id": parent_old_id}}]},
-        }
-        dm = CallbackDataManager(publish_message, encode_message(message), topic)
-        get_transaction().join(dm)
-
-        message = {
-            "guards": get_allowed_roles_and_users_guard(ob),
-            "payload": {"created": [{"@id": new_id, "parent": {"@id": parent_new_id}}]},
-        }
-        dm = CallbackDataManager(publish_message, encode_message(message), topic)
-        get_transaction().join(dm)
-
-
-def publish_object_removed(ob, event):
-    topic = "/".join(ob.getPhysicalPath())
-    parent = aq_parent(ob)
-    if parent is not None:
-        message = {
-            "guards": get_allowed_roles_and_users_guard(ob),
-            "payload": {
-                "removed": [
-                    {"@id": ob.absolute_url(), "parent": {"@id": parent.absolute_url()}}
-                ]
-            },
-        }
-    else:
-        message = {
-            "guards": get_allowed_roles_and_users_guard(ob),
-            "payload": {"removed": [{"@id": ob.absolute_url()}]},
         }
     dm = CallbackDataManager(publish_message, encode_message(message), topic)
     get_transaction().join(dm)

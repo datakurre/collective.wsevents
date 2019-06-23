@@ -337,11 +337,11 @@ var address = protocol + window.location.host + window.location.pathname;
 var socket = new WebSocket(address);
 
 socket.onopen = function() {
-  socket.send('SUBSCRIBE /');
+  socket.send('{"method": "SUBSCRIBE", "path": "/"}');
 };
 
 socket.onmessage = function(msg) {
-  var event = JSON.parse(msg.data), i, comment, text;
+  var event = JSON.parse(msg.data), comment, i, notification, text;
   if (event.commented) {
     for (i = 0; i < event.commented.length; i++) {
       comment = event.commented[i];
@@ -349,6 +349,16 @@ socket.onmessage = function(msg) {
       Toastify({
         text: text,
         destination: comment['@id'],
+        duration: 5000
+      }).showToast();
+    }
+  }
+  if (event.notifications) {
+    for (i = 0; i < event.notifications.length; i++) {
+      notification = event.notifications[i];
+      Toastify({
+        text: notification.text,
+        destination: notification.destination,
         duration: 5000
       }).showToast();
     }

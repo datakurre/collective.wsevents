@@ -1,0 +1,40 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:browser="http://namespaces.zope.org/browser"
+  xmlns:plone="http://namespaces.plone.org/plone"
+  i18n_domain="collective.wsevents">
+
+  <!-- WebSocket action definition -->
+
+  <include package="plone.app.contentrules" />
+
+  <adapter factory=".websocket.WebSocketActionExecutor"/>
+  <adapter factory=".websocket.PayloadValidator"/>
+
+  <browser:page
+    for="plone.app.contentrules.browser.interfaces.IRuleActionAdding"
+    name="plone.actions.WebSocket"
+    class=".websocket.WebSocketAddFormView"
+    permission="plone.app.contentrules.ManageContentRules"
+  />
+
+  <browser:page
+    for="collective.wsevents.actions.websocket.IWebSocketAction"
+    name="edit"
+    class=".websocket.WebSocketEditFormView"
+    permission="plone.app.contentrules.ManageContentRules"
+  />
+
+  <plone:ruleAction
+    name="plone.actions.WebSocket"
+    title="Publish websocket message"
+    description="Publish a websocket message related to the triggering object"
+    for="*"
+    event="*"
+    addview="plone.actions.WebSocket"
+    editview="edit"
+    schema=".websocket.IWebSocketAction"
+    factory=".websocket.WebSocketAction"
+  />
+
+</configure>

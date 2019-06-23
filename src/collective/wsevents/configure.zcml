@@ -8,6 +8,8 @@
 
   <i18n:registerTranslations directory="locales" />
 
+  <include package=".actions" />
+
   <plone:static
     directory="static"
     type="plone"
@@ -60,15 +62,18 @@
 
   <subscriber
     for="plone.dexterity.interfaces.IDexterityContent
-         plone.app.discussion.interfaces.ICommentAddedEvent"
-    handler=".subscribers.publish_object_commented"
-  />
-
-  <subscriber
-    for="plone.dexterity.interfaces.IDexterityContent
          plone.app.discussion.interfaces.ICommentPublishedEvent"
     handler=".subscribers.publish_object_commented"
   />
+
+  <!-- Replaced by content rule action
+  <subscriber
+    for="plone.dexterity.interfaces.IDexterityContent
+         plone.app.discussion.interfaces.ICommentAddedEvent"
+    handler=".subscribers.publish_object_commented"
+  />
+  -->
+
 
   <include file="upgrades.zcml"/>
 
