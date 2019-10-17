@@ -69,7 +69,7 @@ def get_allowed_roles_and_users_guard(context, additional_roles_and_users=()):
             "method": "/".join(getSite().getPhysicalPath()) + "/@@wsevents-guard",
             "tokens": get_allowed_roles_and_users(context, additional_roles_and_users),
         }
-    }
+    } if getSite() else {}
 
 
 def publish_object_created(ob, event):
